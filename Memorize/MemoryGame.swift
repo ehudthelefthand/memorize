@@ -11,7 +11,7 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
 
     private(set) var cards: Array<Card>
 
-    private var indexOfPotentiallyMatchCard: Int? {
+    private var indexOfOneAndOnlyOneFaceUpCard: Int? {
         get { cards.indices.filter { cards[$0].isFadeUp }.oneAndOnly }
         set { cards.indices.forEach { cards[$0].isFadeUp = ($0 == newValue) } }
     }
@@ -29,15 +29,15 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
         if let index = cards.firstIndex(where: { $0.id == card.id }),
            !cards[index].isFadeUp,
            !cards[index].isMatched {
-            if let indexOfPotentiallyMatchCard = indexOfPotentiallyMatchCard {
+            if let indexOfPotentiallyMatchCard = indexOfOneAndOnlyOneFaceUpCard {
                 if cards[indexOfPotentiallyMatchCard].content == cards[index].content {
                     cards[indexOfPotentiallyMatchCard].isMatched = true
                     cards[index].isMatched = true
                 }
-                cards[index].isFadeUp = true
             } else {
-                indexOfPotentiallyMatchCard = index
+                indexOfOneAndOnlyOneFaceUpCard = index
             }
+            cards[index].isFadeUp = true
         }
     }
 

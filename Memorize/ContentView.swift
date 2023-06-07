@@ -8,25 +8,25 @@
 import SwiftUI
 
 struct ContentView: View {
-    @ObservedObject var game: EmojiMemoryGame
+    @ObservedObject var viewModel: EmojiMemoryGame
 
     var body: some View {
         VStack {
             ScrollView {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))] ) {
-                    ForEach(game.cards) { card in
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 65))] ) {
+                    ForEach(viewModel.cards) { card in
                         CardView(card: card)
                             .aspectRatio(2/3, contentMode: .fit)
                             .onTapGesture {
-                                game.choose(card: card)
+                                viewModel.choose(card: card)
                             }
                     }
                 }
             }
-            .padding(.all)
-            .font(.largeTitle)
         }
+        .foregroundColor(.red)
         .padding(.all)
+        .font(.largeTitle)
     }
 }
 
@@ -34,27 +34,28 @@ struct CardView: View {
     let card: MemoryGame<String>.Card
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: 16)
         ZStack {
+            let shape = RoundedRectangle(cornerRadius: 16)
             if card.isFadeUp {
                 shape.fill(.white)
                 shape.strokeBorder(lineWidth: 4)
-                Text(card.content).font(.largeTitle)
+                Text(card.content)
+                    .font(.largeTitle)
+            } else if card.isMatched {
+                shape.opacity(0)
             } else {
-                shape.fill(.red)
+                shape.fill()
             }
         }
-        .foregroundColor(.red)
-        .opacity(card.isMatched ? 0 : 1)
     }
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         let game = EmojiMemoryGame()
-        ContentView(game: game)
+        ContentView(viewModel: game)
             .preferredColorScheme(.light)
-        ContentView(game: game)
+        ContentView(viewModel: game)
             .preferredColorScheme(.dark)
     }
 }
