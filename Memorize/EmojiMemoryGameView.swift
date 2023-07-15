@@ -12,16 +12,12 @@ struct EmojiMemoryGameView: View {
 
     var body: some View {
         VStack {
-            ScrollView {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))] ) {
-                    ForEach(game.cards) { card in
-                        CardView(card: card)
-                            .aspectRatio(2/3, contentMode: .fit)
-                            .onTapGesture {
-                                game.choose(card: card)
-                            }
+            AspectVGrid(items: game.cards, aspectRatio: 2/3) { card in
+                CardView(card: card)
+                    .padding(2)
+                    .onTapGesture {
+                        game.choose(card: card)
                     }
-                }
             }
         }
         .foregroundColor(.red)
@@ -35,17 +31,16 @@ struct CardView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                let shape = RoundedRectangle(cornerRadius: DrawingConstants.cornerRadius)
-                if card.isFadeUp {
-                    shape.fill(.white)
-                    shape.strokeBorder(lineWidth: DrawingConstants.cardBorderWidth)
-                    Text(card.content).font(font(in: geometry.size))
-                } else if card.isMatched {
-                    shape.opacity(0)
-                } else {
-                    shape.fill()
-                }
+                Pie(
+                    startAngle: Angle(degrees: 0-90),
+                    endAngle: Angle(degrees: 60-90)
+                ).padding(5).opacity(0.5)
+                Text(card.content)
+                    .rotationEffect(Angle.degrees(card.isMatched ? 360 : 0))
+                    .animation(Animation.linear(duration: 1).repeatForever(autoreverses: false), value: card.isMatched)
+                    .font(font(in: geometry.size))
             }
+            .cardify(isFaceUp: card.isFaceUp)
         }
     }
 
@@ -54,18 +49,21 @@ struct CardView: View {
     }
 
     private struct DrawingConstants {
-        static let cornerRadius: CGFloat = 16
+        static let cornerRadius: CGFloat = 12
         static let cardBorderWidth: CGFloat = 4
-        static let fontScale: CGFloat = 0.8
+        static let fontScale: CGFloat = 0.7
     }
 }
 
 struct EmojiGameView_Previews: PreviewProvider {
     static var previews: some View {
         let game = EmojiMemoryGame()
-        EmojiMemoryGameView(game: game)
-            .preferredColorScheme(.light)
-        EmojiMemoryGameView(game: game)
-            .preferredColorScheme(.dark)
+        game.choose(card: game.cards.first!)
+        return Group {
+            EmojiMemoryGameView(game: game)
+                .preferredColorScheme(.light)
+            EmojiMemoryGameView(game: game)
+                .preferredColorScheme(.dark)
+        }
     }
 }
