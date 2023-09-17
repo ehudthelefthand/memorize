@@ -23,6 +23,7 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
             cards.append(Card(id: pairIndex * 2, content: content))
             cards.append(Card(id: pairIndex * 2 + 1, content: content))
         }
+        cards.shuffle()
     }
 
     mutating func choose(card: Card) {
@@ -41,11 +42,66 @@ struct MemoryGame<CardContent> where CardContent: Equatable {
         }
     }
 
+    mutating func shuffle() {
+        cards.shuffle()
+    }
+
     struct Card: Identifiable {
         let id: Int
-        var isFaceUp = false
-        var isMatched = false
+        var isFaceUp = false {
+            didSet {
+                if isFaceUp {
+                    startBonusTime()
+                } else {
+                    stopBonusTime()
+                }
+            }
+        }
+        var isMatched = false {
+            didSet {
+                stopBonusTime()
+            }
+        }
         let content: CardContent
+
+        // MARK: - Bonus time
+
+        private mutating func startBonusTime() {
+            if isConsumingBonusTime, lastFaceUpTime == nil {
+                lastFaceUpTime = Date()
+            }
+        }
+
+        var isConsumingBonusTime: Bool {
+            isFaceUp && !isMatched && bonusTimeRemaining > 0
+        }
+
+        var bonusTimeRemaining: TimeInterval {
+            max(0, bonusTimeLimit - faceUpTime)
+        }
+
+        var bonusRemaining: Double {
+            (bonusTimeLimit > 0 && bonusTimeRemaining > 0) ? bonusTimeRemaining/bonusTimeLimit : 0
+        }
+
+        var bonusTimeLimit: TimeInterval = 6
+
+        var faceUpTime: TimeInterval {
+            if let lastFaceUpTime = lastFaceUpTime {
+                return pastFaceUpTime + Date().timeIntervalSince(lastFaceUpTime)
+            } else {
+                return pastFaceUpTime
+            }
+        }
+
+        var lastFaceUpTime: Date?
+
+        var pastFaceUpTime: TimeInterval = 0
+
+        private mutating func stopBonusTime() {
+            pastFaceUpTime = faceUpTime
+            lastFaceUpTime = nil
+        }
     }
 }
 
